@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Dump Yard Issue</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f4f4f4;
+      }
+      .container {
+        max-width: 500px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: auto;
+      }
+      label {
+        font-weight: bold;
+        display: block;
+        margin-top: 10px;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+      }
+      button {
+        background: #28a745;
+        color: white;
+        padding: 10px;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 10px;
+      }
+      button:hover {
+        background: #218838;
+      }
+      #message {
+        margin-top: 10px;
+        font-weight: bold;
+        color: green;
+      }
+      #map {
+        height: 300px;
+        width: 100%;
+        margin-top: 10px;
+        display: none;
+      }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Report a Dump Yard Issue</h2>
+      <form id="reportForm">
+        <label for="name">Your Name:</label>
+        <input type="text" id="name" name="name" required />
+
+        <label for="contact">Contact Details (Email or Phone):</label>
+        <input type="text" id="contact" name="contact" required />
+
+        <label for="location">Location (Enter Address or Select on Map):</label>
+        <input type="text" id="location" name="location" required />
+
+        <div id="map"></div>
+
+        <label for="issue">Describe the Issue:</label>
+        <textarea id="issue" name="issue" rows="4" required></textarea>
+
+        <label for="urgency">Urgency Level:</label>
+        <select id="urgency" name="urgency" required>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+
+        <label for="image">Upload Image:</label>
+        <input type="file" id="image" name="image" accept="image/*" />
+
+        <button type="submit">Submit Report</button>
+      </form>
+      <p id="message"></p>
+    </div>
+
+    <script>
+      let map, marker;
+      function initMap(lat = 20.5937, lng = 78.9629) {
+        document.getElementById("map").style.display = "block";
+        map = L.map("map").setView([lat, lng], 15);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "&copy; OpenStreetMap contributors",
+        }).addTo(map);
+        marker = L.marker([lat, lng], { draggable: true })
+          .addTo(map)
+          .bindPopup("Drag to adjust location")
+          .openPopup();
+        updateCoordinates(lat, lng);
+
+        marker.on("dragend", function (event) {
+          let position = marker.getLatLng();
+          updateCoordinates(position.lat, position.lng);
+        });
+      }
+
+      function updateCoordinates(lat, lng) {
+        document.getElementById("location").value = `${lat}, ${lng}`;
+      }
+
+      document
+        .getElementById("location")
+        .addEventListener("change", async function () {
+          const location = this.value;
+          if (location) {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+                location
+              )}`
+            );
+            const data = await response.json();
+            if (data.length > 0) {
+              const { lat, lon } = data[0];
+              if (map) {
+                map.setView([parseFloat(lat), parseFloat(lon)], 15);
+                marker.setLatLng([parseFloat(lat), parseFloat(lon)]);
+              } else {
+                initMap(parseFloat(lat), parseFloat(lon));
+              }
+              updateCoordinates(lat, lon);
+            } else {
+              alert("Location not found. Please enter a valid address.");
+            }
+          }
+        });
+
+      document
+        .getElementById("reportForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          document.getElementById("message").innerText =
+            "Report submitted successfully!";
+          this.reset();
+          document.getElementById("map").style.display = "none";
+        });
+
+      window.onload = () => initMap();
+    </script>
+  </body>
+</html>

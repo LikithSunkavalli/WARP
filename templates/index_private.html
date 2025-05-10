@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Table Data Viewer</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/style_private.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-geosearch@3.8.0/dist/geosearch.css" />
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-geosearch@3.8.0/dist/bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        .button-group {
+            display: flex;
+            gap: 10px; /* Adjust this value to control spacing (e.g., 5px for even closer) */
+        }
+        .theme-toggle, .logout-button {
+            padding: 10px 15px; /* Ensure consistent padding */
+            margin: 0; /* Remove any default margins */
+        }
+        .logout-button {
+            margin-left: 10px;
+            padding: 10px 15px;
+            background-color: #2c7a7b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .logout-button:hover {
+            background-color: #1e5b5d;
+        }
+    </style>
+</head>
+<body class="light-mode">
+    <!-- Falling Leaves -->
+    <div class="falling-leaf green-leaf" style="left: 5%; animation-delay: 1s;"></div>
+    <div class="falling-leaf green-leaf" style="left: 25%; animation-delay: 4s;"></div>
+    <div class="falling-leaf green-leaf" style="left: 45%; animation-delay: 2s;"></div>
+    <div class="falling-leaf green-leaf" style="left: 65%; animation-delay: 3s;"></div>
+    <div class="falling-leaf green-leaf" style="left: 85%; animation-delay: 5s;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 15%; animation-delay: 8s;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 35%; animation-delay: 6s;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 55%; animation-delay: 9s;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 75%; animation-delay: 7s;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 95%; animation-delay: 0s;"></div>
+
+    <!-- Navbar -->
+    <nav>
+        <div class="logo">
+            <i class="fas fa-leaf"></i>
+            WARP
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index_private') }}">Home</a>
+            <a href="{{ url_for('about_private') }}">About</a>
+            <a href="{{ url_for('services_private') }}">Services</a>
+            <a href="{{ url_for('contact_private') }}">Contact</a>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+                Dark Mode
+            </button>
+            <button class="logout-button" id="logoutButton">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="video-background">
+            <video autoplay muted loop playsinline>
+                <source src="static/asserts/hero1.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>WARP (Waste Analysis Report Project)</h1>
+            <p>Analyse the effects of waste dump on the Ground water and the Environment.</p>
+            <a href="#report-section" class="cta-button">Get Started</a>
+        </div>
+    </section>
+
+    <!-- Upload Images for Waste Analysis Section -->
+    <section class="waste-analysis-section">
+        <h2 class="section-title">Upload Images for Waste Analysis</h2>
+        <div class="waste-analysis-container">
+            <div class="input-group">
+                <label>Depth (meters):</label>
+                <input type="number" id="depthInput" placeholder="Enter depth">
+            </div>
+            <div class="input-group">
+                <label>Years of Dumping:</label>
+                <input type="number" id="yearsInput" placeholder="Enter years">
+            </div>
+            <div class="input-group">
+                <label>Area of Dumpyard (sq. meters):</label>
+                <input type="number" id="areaInput" placeholder="Enter area">
+            </div>
+            <input type="file" id="imageInput" multiple accept="image/*">
+            <div id="imageContainer"></div>
+            <button id="analyzeAllBtn" style="display:none;" onclick="analyzeAllImages()">Analyze All</button>
+            <div id="loading" style="display:none;"><p>Analyzing images...</p></div>
+            <div id="result"></div>
+        </div>
+    </section>
+
+    <!-- Interactive Section (Water Table Analysis) -->
+    <section class="interactive-section" id="report-section">
+        <h2 class="section-title">Water Table Analysis</h2>
+        <div class="interactive-container">
+            <div class="map-full-width">
+                <div id="locationMap" data-lat="11.1271" data-lon="78.6569"></div>
+                <div class="location-data">
+                    <p id="coordinates">Click on the map to get latitude and longitude.</p>
+                    <p id="district" class="text-success"></p>
+                    <p id="water-table" class="text-primary"></p>
+                    <p id="refined-water-table" class="text-warning"></p>
+                </div>
+            </div>
+            <div class="analysis-controls">
+                <button id="generateReport" class="primary-button" style="display: none;">
+                    <i class="fas fa-play"></i> Create Report
+                </button>
+                <a id="downloadLink" class="primary-button" download="environmental_impact_report.pdf" style="display: none;">
+                    <i class="fas fa-download"></i> Download Report
+                </a>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="email" id="emailInput" placeholder="Enter email" style="padding: 1rem; border-radius: 8px; border: none; display: none;">
+                    <button id="sendEmailButton" class="secondary-button" style="display: none;">
+                        <i class="fas fa-envelope"></i> Send Email
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Scrollable Iframe for Report -->
+        <iframe id="reportIframe" style="display: none; width: 100%; height: 400px; border: 1px solid #ccc; border-radius: 8px; margin-top: 2rem; overflow-y: auto;"></iframe>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Contact Us</a>
+            <a href="#">Careers</a>
+        </div>
+        <p class="copyright">© 2025 WaterTable Viewer. All rights reserved.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script1.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+        emailjs.init('YKVdZ7XPVO26YzyKF');
+        const { jsPDF } = window.jspdf;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_KEY = "AIzaSyBTgynSlAHtn5FDmUN1M3gO0WzJlOTKjMg";
+            const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${API_KEY}`;
+            let uploadedImages = [];
+            let totalResults = [];
+            let wasteCategories = ["Plastic", "Paper", "Cardboard", "Degradable", "Non-biodegradable", "E-waste", "Miscellaneous"];
+            let averagedResults = {};
+
+            // Theme Toggle
+            const themeToggle = document.getElementById('themeToggle');
+            const body = document.body;
+            body.classList.add('light-mode');
+            body.style.backgroundColor = '#d8d8d2';
+            body.style.color = '#1e293b';
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+            themeToggle.addEventListener('click', () => {
+                const isLightMode = body.classList.toggle('light-mode');
+                body.style.backgroundColor = isLightMode ? '#d8d8d2' : '#1e293b';
+                body.style.color = isLightMode ? '#1e293b' : '#f8fafc';
+                themeToggle.innerHTML = isLightMode 
+                    ? '<i class="fas fa-moon"></i> Dark Mode' 
+                    : '<i class="fas fa-sun"></i> Light Mode';
+                requestAnimationFrame(() => {
+                    body.style.transition = 'none';
+                    body.offsetHeight;
+                    body.style.transition = 'background-color 0.6s ease-out, color 0.6s ease-out';
+                });
+            });
+
+            // Logout Button
+            const logoutButton = document.getElementById('logoutButton');
+            logoutButton.addEventListener('click', () => {
+                window.location.href = '/logout'; // Changed from '/login' to '/logout'
+            });
+
+            // Falling Leaves Animation
+            const leaves = document.querySelectorAll('.falling-leaf');
+            leaves.forEach(leaf => {
+                const leftPos = Math.random() * 100;
+                leaf.style.left = `${leftPos}%`;
+                const duration = 10 + Math.random() * 10;
+                const delay = Math.random() * 5;
+                const size = 15 + Math.random() * 10;
+                leaf.style.width = `${size}px`;
+                leaf.style.height = `${size}px`;
+                const animationName = leaf.classList.contains('green-leaf') ? 'fallingGreen' : 'fallingDry';
+                leaf.style.animation = `${animationName} ${duration}s linear ${delay}s infinite`;
+            });
+
+            // Map Initialization
+            const map = L.map('locationMap', {
+                dragging: true,
+                touchZoom: true,
+                doubleClickZoom: true,
+                scrollWheelZoom: true,
+                boxZoom: true,
+                keyboard: true,
+                zoomControl: true
+            }).setView([11.1271, 78.6569], 7);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            let marker = L.marker([11.1271, 78.6569])
+                .addTo(map)
+                .bindPopup('Tamil Nadu, India')
+                .openPopup();
+
+            let latitude = null, longitude = null, district = null, waterTable = null, refinedWaterTable = null;
+
+            function onMapClick(e) {
+                latitude = e.latlng.lat.toFixed(6);
+                longitude = e.latlng.lng.toFixed(6);
+
+                marker.setLatLng(e.latlng)
+                    .bindPopup(`Latitude: ${latitude}, Longitude: ${longitude}`)
+                    .openPopup();
+
+                document.getElementById('coordinates').innerHTML = `Latitude: ${latitude}, Longitude: ${longitude}`;
+                document.getElementById('water-table').innerHTML = 'Fetching water table data...';
+                document.getElementById('refined-water-table').innerHTML = '';
+                document.getElementById('district').innerHTML = '';
+
+                document.getElementById('generateReport').style.display = 'none';
+                document.getElementById('emailInput').style.display = 'none';
+                document.getElementById('sendEmailButton').style.display = 'none';
+                document.getElementById('downloadLink').style.display = 'none';
+                document.getElementById('reportIframe').style.display = 'none';
+
+                fetch('/get_water_table', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ latitude: latitude, longitude: longitude })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data) throw new Error('No data received');
+
+                    district = data.district;
+                    waterTable = data.water_table_level;
+                    refinedWaterTable = data.refined_water_table;
+
+                    document.getElementById('district').innerHTML = `District: <strong>${district}</strong>`;
+                    document.getElementById('water-table').innerHTML = `The groundwater level is: <strong>${waterTable} meters</strong>`;
+                    document.getElementById('refined-water-table').innerHTML = `Gemini AI Prediction: <strong>${refinedWaterTable}</strong>`;
+                    document.getElementById('generateReport').style.display = 'block';
+                    document.getElementById('emailInput').style.display = 'block';
+                    document.getElementById('sendEmailButton').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('water-table').innerHTML = 'Error fetching data!';
+                    document.getElementById('district').innerHTML = '';
+                    document.getElementById('refined-water-table').innerHTML = '';
+                });
+            }
+
+            // Add Search Control
+            const searchControl = new GeoSearch.GeoSearchControl({
+                provider: new GeoSearch.OpenStreetMapProvider({
+                    params: { limit: 5, countrycodes: 'IN' }
+                }),
+                style: 'bar',
+                showMarker: false,
+                autoClose: true,
+                searchLabel: 'Search for a place',
+                retainZoomLevel: false,
+                animateZoom: true,
+                updateMap: false
+            }).addTo(map);
+
+            map.on('geosearch/showlocation', function (e) {
+                if (!e.location || typeof e.location.y !== 'number' || typeof e.location.x !== 'number') {
+                    console.error('Invalid search result:', e.location);
+                    alert('Search failed: Invalid location data.');
+                    return;
+                }
+                const latlng = { lat: e.location.y, lng: e.location.x };
+                map.setView(latlng, 12);
+                onMapClick({ latlng: latlng });
+            });
+
+            map.on('geosearch/error', function (e) {
+                console.error('Search error:', e.error);
+                alert('Search failed: ' + e.error.message);
+            });
+
+            // Waste Analysis Functionality
+            document.getElementById("imageInput").addEventListener("change", function() {
+                let files = Array.from(this.files);
+                let imageContainer = document.getElementById("imageContainer");
+                
+                files.forEach((file, index) => {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        let card = document.createElement("div");
+                        card.className = "image-card";
+                        card.id = `card-${index}`;
+                        card.innerHTML = `
+                            <button class="delete-btn">X</button>
+                            <img src="${e.target.result}" alt="${file.name}">
+                            <p><strong>Image:</strong> ${file.name}</p>
+                            <p><strong>Depth:</strong> ${document.getElementById("depthInput").value || 'N/A'} meters</p>
+                            <p><strong>Years:</strong> ${document.getElementById("yearsInput").value || 'N/A'} years</p>
+                            <p><strong>Area:</strong> ${document.getElementById("areaInput").value || 'N/A'} sq. meters</p>
+                            <button class="analyze-btn">Analyze</button>
+                        `;
+                        imageContainer.appendChild(card);
+
+                        card.querySelector(".delete-btn").addEventListener("click", () => deleteImage(index));
+                        card.querySelector(".analyze-btn").addEventListener("click", () => analyzeSingleImage(index));
+                    };
+                    reader.readAsDataURL(file);
+                    uploadedImages.push(file);
+                });
+                document.getElementById("analyzeAllBtn").style.display = "block";
+            });
+
+            function deleteImage(index) {
+                uploadedImages.splice(index, 1);
+                let imageContainer = document.getElementById("imageContainer");
+                imageContainer.innerHTML = "";
+                
+                uploadedImages.forEach((file, newIndex) => {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        let card = document.createElement("div");
+                        card.className = "image-card";
+                        card.id = `card-${newIndex}`;
+                        card.innerHTML = `
+                            <button class="delete-btn">X</button>
+                            <img src="${e.target.result}" alt="${file.name}">
+                            <p><strong>Image:</strong> ${file.name}</p>
+                            <p><strong>Depth:</strong> ${document.getElementById("depthInput").value || 'N/A'} meters</p>
+                            <p><strong>Years:</strong> ${document.getElementById("yearsInput").value || 'N/A'} years</p>
+                            <p><strong>Area:</strong> ${document.getElementById("areaInput").value || 'N/A'} sq. meters</p>
+                            <button class="analyze-btn">Analyze</button>
+                        `;
+                        imageContainer.appendChild(card);
+
+                        card.querySelector(".delete-btn").addEventListener("click", () => deleteImage(newIndex));
+                        card.querySelector(".analyze-btn").addEventListener("click", () => analyzeSingleImage(newIndex));
+                    };
+                    reader.readAsDataURL(file);
+                });
+                
+                if (uploadedImages.length === 0) {
+                    document.getElementById("analyzeAllBtn").style.display = "none";
+                }
+            }
+
+            async function analyzeSingleImage(index) {
+                let file = uploadedImages[index];
+                let reader = new FileReader();
+
+                reader.onload = async function() {
+                    let base64Image = reader.result.split(",")[1];
+                    let depth = document.getElementById("depthInput").value || 0;
+                    let years = document.getElementById("yearsInput").value || 0;
+                    let area = document.getElementById("areaInput").value || 0;
+
+                    let payload = {
+                        "contents": [
+                            {
+                                "parts": [
+                                    {
+                                        "inlineData": {
+                                            "mimeType": "image/jpeg",
+                                            "data": base64Image
+                                        }
+                                    },
+                                    {
+                                        "text": `Analyze the given image using the following parameters:
+    
+    - Depth: ${depth} meters
+    - Area: ${area} square meters
+    - Years of dumping: ${years} years
+    
+    *Task:*
+    1. Identify and categorize waste into: Plastic, Paper, Cardboard, Degradable, Non-biodegradable (excluding plastic), E-waste, Miscellaneous.
+    2. Estimate the height of the dump from the images (in meters or feet) and refine it using the provided depth.
+    3. Use the provided area and refined height/depth to estimate the total volume of the dumpyard.
+    4. Factor in the years of dumping to adjust for decomposition and accumulation patterns.
+    5. Calculate the percentage of each waste type based on image analysis, estimated volume, and years.
+    
+    *Output Format (Strict JSON only):*
+    {
+      "Plastic": XX,
+      "Paper": XX,
+      "Cardboard": XX,
+      "Degradable": XX,
+      "Non-biodegradable": XX,
+      "E-waste": XX,
+      "Miscellaneous": XX
+    }
+    (Sum of all values must be exactly 100%)`
+                                    }
+                                ]
+                            }
+                        ]
+                    };
+
+                    try {
+                        let response = await fetch(URL, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        });
+
+                        let data = await response.json();
+                        let responseText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                        let jsonMatch = responseText.match(/\{[\s\S]*?\}/);
+                        if (jsonMatch) {
+                            let jsonResult = JSON.parse(jsonMatch[0]);
+                            totalResults.push(jsonResult);
+                            updateAveragedResults();
+                        }
+                    } catch (error) {
+                        console.error("Fetch or JSON error:", error);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+
+            async function analyzeAllImages() {
+                document.getElementById("loading").style.display = "block";
+                totalResults = [];
+
+                for (let i = 0; i < uploadedImages.length; i++) {
+                    await analyzeSingleImage(i);
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+
+                document.getElementById("loading").style.display = "none";
+            }
+
+            function updateAveragedResults() {
+                averagedResults = {};
+                wasteCategories.forEach(category => averagedResults[category] = 0);
+                
+                totalResults.forEach(result => {
+                    wasteCategories.forEach(category => {
+                        if (result[category] !== undefined) {
+                            averagedResults[category] += result[category];
+                        }
+                    });
+                });
+                
+                wasteCategories.forEach(category => {
+                    averagedResults[category] = totalResults.length > 0 
+                        ? (averagedResults[category] / totalResults.length).toFixed(2) 
+                        : 0;
+                });
+                
+                let resultDiv = document.getElementById("result");
+                resultDiv.innerHTML = `<h3>Final Waste Composition (Averaged):</h3>`;
+                wasteCategories.forEach(category => {
+                    resultDiv.innerHTML += `<p><strong>${category}:</strong> ${averagedResults[category]}%</p>`;
+                });
+            }
+
+            document.getElementById("analyzeAllBtn").addEventListener("click", analyzeAllImages);
+
+            // Report Generation
+            document.getElementById('generateReport').addEventListener('click', function () {
+                if (!latitude || !longitude || !district || !waterTable || !refinedWaterTable) {
+                    alert('Please select a location first!');
+                    return;
+                }
+
+                const generateButton = this;
+                const reportIframe = document.getElementById('reportIframe');
+                generateButton.disabled = true;
+                generateButton.innerText = 'Generating Report...';
+
+                const loadingSpinner = document.createElement('div');
+                loadingSpinner.id = 'loadingSpinner';
+                loadingSpinner.innerHTML = `
+                    <div style="border: 5px solid #f3f3f3; border-top: 5px solid #2c7a7b; 
+                                border-radius: 50%; width: 50px; height: 50px; 
+                                animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    <p style="text-align:center; font-weight:bold; margin-top: 10px;">Generating Report...</p>
+                `;
+                document.body.appendChild(loadingSpinner);
+
+                const depth = document.getElementById("depthInput").value || 'Not provided';
+                const years = document.getElementById("yearsInput").value || 'Not provided';
+                const area = document.getElementById("areaInput").value || 'Not provided';
+
+                const reportContent = `
+                    <html>
+                    <head>
+                        <style>
+                            body {
+                                font-family: Arial, sans-serif;
+                                padding: 20px;
+                                line-height: 1.6;
+                                color: #333;
+                            }
+                            h1 {
+                                color: #2c7a7b;
+                                text-align: center;
+                                margin-bottom: 30px;
+                                font-size: 28px;
+                            }
+                            h2 {
+                                color: #4d7c0f;
+                                margin: 25px 0 15px;
+                                border-bottom: 2px solid #4d7c0f;
+                                padding-bottom: 5px;
+                                font-size: 22px;
+                            }
+                            p, li {
+                                margin: 8px 0;
+                                font-size: 16px;
+                            }
+                            .section {
+                                margin-bottom: 35px;
+                                padding: 15px;
+                                background: #f9f9f9;
+                                border-radius: 8px;
+                            }
+                            .highlight {
+                                font-weight: bold;
+                                color: #1e293b;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 15px 0;
+                            }
+                            th, td {
+                                border: 1px solid #ddd;
+                                padding: 10px;
+                                text-align: left;
+                            }
+                            th {
+                                background-color: #e6f3e6;
+                                color: #4d7c0f;
+                            }
+                            .risk-level {
+                                padding: 5px 10px;
+                                border-radius: 4px;
+                                color: white;
+                                display: inline-block;
+                            }
+                            .low-risk { background-color: #48bb78; }
+                            .medium-risk { background-color: #ecc94b; }
+                            .high-risk { background-color: #f56565; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>WARP Environmental Impact Report</h1>
+
+                        <div class="section">
+                            <h2>1. Site Overview</h2>
+                            <p><span class="highlight">Coordinates:</span> Latitude: ${latitude}, Longitude: ${longitude}</p>
+                            <p><span class="highlight">District:</span> ${district}</p>
+                            <p><span class="highlight">Report Generated:</span> ${new Date().toLocaleString()}</p>
+                        </div>
+
+                        <div class="section">
+                            <h2>2. Water Table Assessment</h2>
+                            <p><span class="highlight">Measured Water Table Depth:</span> ${waterTable} meters</p>
+                            <p><span class="highlight">Refined Water Table Depth:</span> ${refinedWaterTable}</p>
+                            <p><span class="highlight">Risk Assessment:</span> 
+                                <span class="risk-level ${
+                                    parseFloat(waterTable) < 10 ? 'high-risk' : 
+                                    parseFloat(waterTable) < 20 ? 'medium-risk' : 'low-risk'
+                                }">
+                                    ${
+                                        parseFloat(waterTable) < 10 ? 'High Risk' : 
+                                        parseFloat(waterTable) < 20 ? 'Medium Risk' : 'Low Risk'
+                                    }
+                                </span>
+                            </p>
+                            <p>Notes: Shallower water tables (<10m) indicate higher contamination potential.</p>
+                        </div>
+
+                        <div class="section">
+                            <h2>3. Waste Dump Analysis</h2>
+                            <table>
+                                <tr><th>Parameter</th><th>Value</th><th>Impact Level</th></tr>
+                                <tr>
+                                    <td>Depth of Dump</td>
+                                    <td>${depth} meters</td>
+                                    <td>${
+                                        depth === 'Not provided' ? 'Unknown' :
+                                        depth < 5 ? 'Low' : depth < 15 ? 'Moderate' : 'High'
+                                    }</td>
+                                </tr>
+                                <tr>
+                                    <td>Years of Dumping</td>
+                                    <td>${years} years</td>
+                                    <td>${
+                                        years === 'Not provided' ? 'Unknown' :
+                                        years < 5 ? 'Low' : years < 20 ? 'Moderate' : 'High'
+                                    }</td>
+                                </tr>
+                                <tr>
+                                    <td>Area of Dumpyard</td>
+                                    <td>${area} sq. meters</td>
+                                    <td>${
+                                        area === 'Not provided' ? 'Unknown' :
+                                        area < 1000 ? 'Low' : area < 5000 ? 'Moderate' : 'High'
+                                    }</td>
+                                </tr>
+                            </table>
+                            <p><span class="highlight">Waste Composition:</span></p>
+                            <ul>
+                                ${Object.keys(averagedResults).length > 0 
+                                    ? Object.entries(averagedResults).map(([key, value]) => `<li>${key}: ${value}%</li>`).join('')
+                                    : '<li>No image analysis performed yet. Please use "Analyze All" first.</li>'
+                                }
+                            </ul>
+                        </div>
+
+                        <div class="section">
+                            <h2>4. Environmental Impact Analysis</h2>
+                            <p>Based on the data provided:</p>
+                            <ul>
+                                <li>Groundwater Contamination Risk: ${
+                                    depth !== 'Not provided' && parseFloat(waterTable) < parseFloat(depth) + 5
+                                    ? 'High - Waste depth approaches water table'
+                                    : 'Moderate to Low'
+                                }</li>
+                                <li>Leachate Generation Potential: ${
+                                    years !== 'Not provided' && years > 10
+                                    ? 'High - Extended dumping period'
+                                    : 'Moderate to Low'
+                                }</li>
+                                <li>Surface Water Impact: ${
+                                    area !== 'Not provided' && area > 2000
+                                    ? 'Significant - Large area coverage'
+                                    : 'Minimal to Moderate'
+                                }</li>
+                                <li>Waste Composition Impact: ${
+                                    averagedResults["Non-biodegradable"] && parseFloat(averagedResults["Non-biodegradable"]) > 20
+                                    ? 'High - Significant non-biodegradable content'
+                                    : 'Moderate to Low'
+                                }</li>
+                            </ul>
+                        </div>
+
+                        <div class="section">
+                            <h2>5. Recommendations</h2>
+                            <table>
+                                <tr><th>Area</th><th>Recommendation</th><th>Priority</th></tr>
+                                <tr>
+                                    <td>Waste Management</td>
+                                    <td>Implement waste segregation and recycling</td>
+                                    <td>High</td>
+                                </tr>
+                                <tr>
+                                    <td>Groundwater Protection</td>
+                                    <td>Install impermeable liners</td>
+                                    <td>${parseFloat(waterTable) < 15 ? 'High' : 'Medium'}</td>
+                                </tr>
+                                <tr>
+                                    <td>Monitoring</td>
+                                    <td>Quarterly water quality tests</td>
+                                    <td>High</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="section">
+                            <h2>6. Conclusion</h2>
+                            <p>This report assesses the environmental impact of waste dumping at the specified location. Immediate action is recommended based on the risk levels identified.</p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                reportIframe.style.display = 'block';
+                reportIframe.srcdoc = reportContent;
+                reportIframe.scrollIntoView({ behavior: 'smooth' });
+
+                document.getElementById('downloadLink').style.display = 'block';
+                document.getElementById('downloadLink').onclick = () => {
+                    const doc = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    doc.html(reportIframe.contentWindow.document.body, {
+                        callback: function (doc) {
+                            doc.save('environmental_impact_report.pdf');
+                        },
+                        x: 10,
+                        y: 10,
+                        width: 190,
+                        windowWidth: 800
+                    });
+                };
+
+                generateButton.disabled = false;
+                generateButton.innerText = 'Create Report';
+                loadingSpinner.remove();
+            });
+
+            // Email Sending
+            document.getElementById('sendEmailButton').addEventListener('click', function () {
+                const email = document.getElementById('emailInput').value;
+                if (!email) {
+                    alert('Please enter an email address.');
+                    return;
+                }
+                if (!latitude || !longitude || !district || !waterTable || !refinedWaterTable) {
+                    alert('Please select a location first!');
+                    return;
+                }
+
+                const sendButton = this;
+                sendButton.disabled = true;
+                sendButton.innerText = 'Sending...';
+
+                const wasteComposition = Object.keys(averagedResults).length > 0 
+                    ? Object.entries(averagedResults).map(([key, value]) => `${key}: ${value}%`).join(', ')
+                    : 'Not analyzed';
+
+                emailjs.send('service_84k4yan', 'template_sko1cwv', {
+                    to_email: email,
+                    district: district,
+                    lat: latitude,
+                    lon: longitude,
+                    water_table: waterTable,
+                    refined_water_table: refinedWaterTable,
+                    waste_composition: wasteComposition,
+                    to_name: email.split('@')[0]
+                })
+                .then(() => {
+                    alert('Email sent successfully!');
+                    sendButton.disabled = false;
+                    sendButton.innerText = 'Send Email';
+                })
+                .catch(error => {
+                    console.error('Error sending email:', error);
+                    alert('Failed to send email.');
+                    sendButton.disabled = false;
+                    sendButton.innerText = 'Send Email';
+                });
+            });
+
+            map.on('click', onMapClick);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - WARP</title>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+    <!-- Link to your static CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        :root {
+            --bg-dark: #1e293b;
+            --card-bg: #334155;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #4d7c0f;
+            --accent-teal: #2c7a7b;
+            --eco-green: #4a7f45;
+            --transition-duration: 0.6s;
+        }
+
+        .light-mode {
+            --bg-dark: #d8d8d2;
+            --card-bg: #ffffff;
+            --text-light: #1e293b;
+            --text-muted: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            transition: background-color var(--transition-duration) ease-out;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            background-color: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            transition: background-color var(--transition-duration) ease-out;
+        }
+
+        .light-mode nav {
+            background-color: #d8d8d2;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(to right, var(--accent-green), var(--accent-teal));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-teal);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(to right, var(--accent-green), var(--accent-teal));
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .theme-toggle {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .light-mode .theme-toggle {
+            background-color: #ddd;
+            color: #333;
+        }
+
+        .contact-section {
+            padding: 6rem 2rem;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            background-image: url('/static/asserts/img1.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .contact-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(30, 41, 59, 0.8), rgba(30, 41, 59, 0.5));
+            z-index: 0;
+        }
+
+        .light-mode .contact-section::before {
+            background: linear-gradient(to bottom, rgba(216, 216, 210, 0.8), rgba(245, 245, 220, 0.5));
+        }
+
+        .contact-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .light-mode .contact-container {
+            background: rgba(216, 216, 210, 0.75);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, var(--accent-green), var(--accent-teal));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: row; /* Keep horizontal layout */
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .form-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--accent-teal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            order: -1; /* Moves icon to the left */
+        }
+
+        .form-group input,
+        .form-group textarea {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .light-mode .form-group input,
+        .light-mode .form-group textarea {
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-light);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent-teal);
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .submit-button {
+            padding: 1rem 2rem;
+            background: linear-gradient(to right, var(--accent-green), var(--accent-teal));
+            color: white;
+            border: none;
+            border-radius: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            align-self: center;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-3px);
+        }
+
+        .message-status {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .message-status.success {
+            color: var(--accent-green);
+        }
+
+        .message-status.error {
+            color: #ff4444;
+        }
+
+        .falling-leaf {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            opacity: 0.4;
+            border-radius: 50% 50% 0 50%;
+            transform: rotate(45deg);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .green-leaf {
+            background-color: var(--eco-green);
+        }
+
+        .dry-leaf {
+            background-color: #8B4513;
+        }
+
+        footer {
+            background-color: rgba(30, 41, 59, 0.9);
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            transition: background-color var(--transition-duration) ease-out;
+        }
+
+        .light-mode footer {
+            background-color: #d8d8d2;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-teal);
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .contact-container { padding: 1.5rem; }
+            .section-title { font-size: 2rem; }
+            .form-group { flex-direction: column; align-items: flex-start; }
+            .form-icon { margin-bottom: 0.5rem; order: 0; } /* Reset order for mobile */
+            .submit-button { width: 100%; }
+        }
+        .logout-button {
+            margin-left: 10px;
+            padding: 10px 15px;
+            background-color: #2c7a7b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .logout-button:hover {
+            background-color: #1e5b5d;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px; /* Adjust this value to control spacing (e.g., 5px for even closer) */
+        }
+        .theme-toggle, .logout-button {
+            padding: 10px 15px; /* Ensure consistent padding */
+            margin: 0; /* Remove any default margins */
+        }
+    </style>
+</head>
+<body class="light-mode"> <!-- Added light-mode class by default -->
+    <!-- Falling Leaves -->
+    <div class="falling-leaf green-leaf" style="left: 5%; animation: fall1 12s linear infinite;"></div>
+    <div class="falling-leaf green-leaf" style="left: 25%; animation: fall2 15s linear infinite;"></div>
+    <div class="falling-leaf green-leaf" style="left: 45%; animation: fall3 10s linear infinite;"></div>
+    <div class="falling-leaf green-leaf" style="left: 65%; animation: fall4 14s linear infinite;"></div>
+    <div class="falling-leaf green-leaf" style="left: 85%; animation: fall5 13s linear infinite;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 15%; animation: fall1 11s linear infinite;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 35%; animation: fall2 16s linear infinite;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 55%; animation: fall3 12s linear infinite;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 75%; animation: fall4 15s linear infinite;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 95%; animation: fall5 10s linear infinite;"></div>
+
+    <!-- Navbar -->
+    <nav>
+        <div class="logo">
+            <i class="fas fa-leaf"></i>
+            WARP
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('about') }}">About</a>
+            <a href="{{ url_for('services') }}">Services</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+                Dark Mode
+            </button>
+            <button class="logout-button" id="logoutButton">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="contact-container">
+            <h2 class="section-title">Contact Us</h2>
+            <form class="contact-form" id="contactForm">
+                <div class="form-group">
+                    <div class="form-icon"><i class="fas fa-user"></i></div>
+                    <input type="text" name="name" placeholder="Name" required>
+                </div>
+                <div class="form-group">
+                    <div class="form-icon"><i class="fas fa-envelope"></i></div>
+                    <input type="email" name="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <div class="form-icon"><i class="fas fa-phone"></i></div>
+                    <input type="tel" name="phone" placeholder="Phone Number (Optional)">
+                </div>
+                <div class="form-group">
+                    <div class="form-icon"><i class="fas fa-comment"></i></div>
+                    <textarea name="message" placeholder="Your Message" required></textarea>
+                </div>
+                <button type="submit" class="submit-button">Send Message</button>
+            </form>
+            <div class="message-status" id="messageStatus"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Contact Us</a>
+        </div>
+        <p class="copyright">© 2025 WARP. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const logoutButton = document.getElementById('logoutButton');
+        logoutButton.addEventListener('click', () => {
+        window.location.href = '/logout'; // Changed from '/login' to '/logout'
+        });
+        // Falling Leaves Animations
+        const leafStyles = `
+            @keyframes fall1 {
+                0% { transform: translateY(-100px) translateX(0) rotate(45deg); opacity: 0; }
+                10% { opacity: 0.4; }
+                50% { transform: translateY(50vh) translateX(-50px) rotate(180deg); }
+                100% { transform: translateY(calc(100vh + 100px)) translateX(100px) rotate(360deg); opacity: 0; }
+            }
+            @keyframes fall2 {
+                0% { transform: translateY(-100px) translateX(0) rotate(45deg); opacity: 0; }
+                10% { opacity: 0.4; }
+                50% { transform: translateY(50vh) translateX(75px) rotate(270deg); }
+                100% { transform: translateY(calc(100vh + 100px)) translateX(-150px) rotate(720deg); opacity: 0; }
+            }
+            @keyframes fall3 {
+                0% { transform: translateY(-100px) translateX(0) rotate(45deg); opacity: 0; }
+                10% { opacity: 0.4; }
+                50% { transform: translateY(50vh) translateX(-100px) rotate(90deg); }
+                100% { transform: translateY(calc(100vh + 100px)) translateX(50px) rotate(540deg); opacity: 0; }
+            }
+            @keyframes fall4 {
+                0% { transform: translateY(-100px) translateX(0) rotate(45deg); opacity: 0; }
+                10% { opacity: 0.4; }
+                50% { transform: translateY(50vh) translateX(120px) rotate(360deg); }
+                100% { transform: translateY(calc(100vh + 100px)) translateX(-80px) rotate(900deg); opacity: 0; }
+            }
+            @keyframes fall5 {
+                0% { transform: translateY(-100px) translateX(0) rotate(45deg); opacity: 0; }
+                10% { opacity: 0.4; }
+                50% { transform: translateY(50vh) translateX(-150px) rotate(180deg); }
+                100% { transform: translateY(calc(100vh + 100px)) translateX(200px) rotate(720deg); opacity: 0; }
+            }
+        `;
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = leafStyles;
+        document.head.appendChild(styleSheet);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Theme Toggle
+            const themeToggle = document.getElementById('themeToggle');
+            const body = document.body;
+            let isLightMode = true; // Default to light mode
+
+            themeToggle.addEventListener('click', () => {
+                isLightMode = !isLightMode;
+                body.classList.toggle('light-mode');
+                themeToggle.innerHTML = isLightMode 
+                    ? '<i class="fas fa-moon"></i> Dark Mode' 
+                    : '<i class="fas fa-sun"></i> Light Mode';
+                console.log("Theme toggled to:", isLightMode ? 'light' : 'dark');
+            });
+
+            // EmailJS Initialization and Form Submission
+            emailjs.init('mHOKmkvlGWOsdMT-b'); // Your EmailJS Public Key
+
+            document.getElementById("contactForm").addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                const messageStatus = document.getElementById("messageStatus");
+                messageStatus.innerText = "Sending...";
+                messageStatus.className = "message-status";
+
+                const serviceID = 'service_vby4l4k';
+                const templateID = 'template_b681597';
+
+                console.log("Submitting contact form with EmailJS...");
+
+                emailjs.sendForm(serviceID, templateID, this)
+                    .then(() => {
+                        console.log("Contact message sent successfully!");
+                        messageStatus.innerText = "Message sent successfully!";
+                        messageStatus.className = "message-status success";
+                        this.reset();
+                    }, (error) => {
+                        console.error("EmailJS Error:", error);
+                        messageStatus.innerText = "Failed to send message: " + (error.text || "Unknown error");
+                        messageStatus.className = "message-status error";
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services - WARP</title>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #1e293b;
+            --card-bg: #334155;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #4d7c0f;
+            --accent-teal: #2c7a7b;
+            --eco-green: #4a7f45;
+            --transition-duration: 0.6s;
+        }
+
+        .light-mode {
+            --bg-dark: #d8d8d2;
+            --card-bg: #ffffff;
+            --text-light: #1e293b;
+            --text-muted: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            transition: background-color var(--transition-duration) ease-out;
+            overflow-x: hidden;
+        }
+
+        /* Navbar Styles */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            background-color: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            transition: background-color var(--transition-duration) ease-out;
+        }
+
+        .light-mode nav {
+            background-color: #d8d8d2;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(to right, var(--accent-green), var(--accent-teal));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-teal);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(to right, var(--accent-green), var(--accent-teal));
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .theme-toggle {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .light-mode .theme-toggle {
+            background-color: #ddd;
+            color: #333;
+        }
+
+        /* Content Section */
+        .content-section {
+            padding: 6rem 2rem;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            background-image: url('static/asserts/img1.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .content-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(30, 41, 59, 0.8), rgba(30, 41, 59, 0.5));
+            z-index: 0;
+        }
+
+        .light-mode .content-section::before {
+            background: linear-gradient(to bottom, rgba(216, 216, 210, 0.8), rgba(245, 245, 220, 0.5));
+        }
+
+        .content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .light-mode .content-container {
+            background: rgba(216, 216, 210, 0.75);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(to right, var(--accent-green), var(--accent-teal));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .service-container {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .service-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25), 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .light-mode .service-container {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .light-mode .service-container:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2), 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            margin: 0 20px 0 0;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--accent-teal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .service-content {
+            flex: 1;
+        }
+
+        .service-content h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--accent-green), var(--accent-teal));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .service-content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .service-content ul {
+            list-style-type: disc;
+            margin-left: 2rem;
+            margin-bottom: 0;
+        }
+
+        .service-content li {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Leaf Effects */
+        .falling-leaf {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            opacity: 0.4;
+            border-radius: 50% 50% 0 50%;
+            transform: rotate(45deg);
+            animation: falling 15s linear infinite;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .green-leaf {
+            background-color: var(--eco-green);
+            animation: fallingGreen 15s linear infinite;
+        }
+
+        .dry-leaf {
+            background-color: #8B4513;
+            animation: fallingDry 15s linear infinite;
+        }
+
+        @keyframes falling {
+            0% { transform: translateY(-100px) rotate(45deg); opacity: 0; }
+            10% { opacity: 0.4; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(calc(100vh + 100px)) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes fallingGreen {
+            0% { transform: translateY(-100px) translateX(0) rotate(45deg); opacity: 0; }
+            10% { opacity: 0.4; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(calc(100vh + 100px)) translateX(100px) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes fallingDry {
+            0% { transform: translateY(-100px) translateX(0) rotate(45deg); opacity: 0; }
+            10% { opacity: 0.5; }
+            50% { transform: translateY(50vh) translateX(50px) rotate(180deg); }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(calc(100vh + 100px)) translateX(150px) rotate(720deg); opacity: 0; }
+        }
+
+        .falling-leaf:nth-child(3n) { width: 15px; height: 15px; }
+        .falling-leaf:nth-child(2n) { width: 25px; height: 25px; }
+
+        /* Footer */
+        footer {
+            background-color: rgba(30, 41, 59, 0.9);
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            transition: background-color var(--transition-duration) ease-out;
+        }
+
+        .light-mode footer {
+            background-color: #d8d8d2;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-teal);
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .content-container { padding: 1.5rem; }
+            .section-title { font-size: 2rem; }
+            .service-container { 
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem; 
+            }
+            .service-icon { margin: 0 0 1rem 0; }
+            .service-content h2 { font-size: 1.5rem; }
+        }
+        .button-group {
+            display: flex;
+            gap: 10px; /* Adjust this value to control spacing (e.g., 5px for even closer) */
+        }
+        .theme-toggle, .logout-button {
+            padding: 10px 15px; /* Ensure consistent padding */
+            margin: 0; /* Remove any default margins */
+        }
+        .logout-button {
+            margin-left: 10px;
+            padding: 10px 15px;
+            background-color: #2c7a7b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .logout-button:hover {
+            background-color: #1e5b5d;
+        }
+    </style>
+</head>
+<body class="light-mode"> <!-- Set light-mode by default -->
+    <!-- Falling Leaves -->
+    <div class="falling-leaf green-leaf" style="left: 5%; animation-delay: 1s;"></div>
+    <div class="falling-leaf green-leaf" style="left: 25%; animation-delay: 4s;"></div>
+    <div class="falling-leaf green-leaf" style="left: 45%; animation-delay: 2s;"></div>
+    <div class="falling-leaf green-leaf" style="left: 65%; animation-delay: 3s;"></div>
+    <div class="falling-leaf green-leaf" style="left: 85%; animation-delay: 5s;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 15%; animation-delay: 8s;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 35%; animation-delay: 6s;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 55%; animation-delay: 9s;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 75%; animation-delay: 7s;"></div>
+    <div class="falling-leaf dry-leaf" style="left: 95%; animation-delay: 0s;"></div>
+
+    <!-- Navbar -->
+    <nav>
+        <div class="logo">
+            <i class="fas fa-leaf"></i>
+            WARP
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('about') }}">About</a>
+            <a href="{{ url_for('services') }}">Services</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+                Dark Mode
+            </button>
+            <button class="logout-button" id="logoutButton">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Content Section -->
+    <section class="content-section">
+        <div class="content-container">
+            <h2 class="section-title">Our Services</h2>
+            
+            <div class="service-container">
+                <div class="service-icon"><i class="fas fa-water"></i></div>
+                <div class="service-content">
+                    <h2>Groundwater Analysis</h2>
+                    <p>
+                        We provide advanced groundwater analysis services to assess water table levels near dumpyards and industrial sites. Using precise geospatial data and AI-driven predictions powered by the Gemini API, we deliver accurate insights into groundwater depth and potential contamination risks.
+                    </p>
+                    <ul>
+                        <li>Latitude and longitude-based water table estimation with high precision</li>
+                        <li>Refined predictions incorporating geological, hydrological, and environmental factors</li>
+                        <li>Detailed reports outlining water table levels and potential leachate impacts</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="service-container">
+                <div class="service-icon"><i class="fas fa-leaf"></i></div>
+                <div class="service-content">
+                    <h2>Environmental Impact Assessment</h2>
+                    <p>
+                        Our environmental impact assessments evaluate the effects of dumpyards on local ecosystems, soil integrity, and water resources. We analyze waste composition, rainfall infiltration, and groundwater interactions to provide comprehensive reports and actionable recommendations.
+                    </p>
+                    <ul>
+                        <li>Analysis of plastic waste’s long-term effects on soil and water quality</li>
+                        <li>Evaluation of rainfall-driven pollutant infiltration into groundwater</li>
+                        <li>Recommendations for mitigating nitrogen pollution and hazardous chemical seepage</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="service-container">
+                <div class="service-icon"><i class="fas fa-recycle"></i></div>
+                <div class="service-content">
+                    <h2>Waste Management Consulting</h2>
+                    <p>
+                        We offer expert consulting to optimize waste management practices, reducing environmental harm and enhancing public health safety. Our tailored strategies are based on your site’s specific data, ensuring practical and sustainable solutions.
+                    </p>
+                    <ul>
+                        <li>Waste segregation plans for plastics, metals, glass, and biodegradables</li>
+                        <li>Strategies to minimize nitrogen pollution from organic waste decomposition</li>
+                        <li>Guidance on eco-friendly disposal, recycling, and landfill management</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="service-container">
+                <div class="service-icon"><i class="fas fa-envelope"></i></div>
+                <div class="service-content">
+                    <h2>Custom Reporting & Email Delivery</h2>
+                    <p>
+                        Receive detailed, professional PDF reports delivered straight to your inbox. Our reports combine raw data, AI-generated insights, and expert recommendations, customized to your location and project requirements.
+                    </p>
+                    <ul>
+                        <li>Downloadable PDF reports with clear visualizations and analysis</li>
+                        <li>Secure, instant email delivery for accessibility</li>
+                        <li>Option to request periodic updates or follow-up assessments</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Contact Us</a>
+        </div>
+        <p class="copyright">© 2025 WARP. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const logoutButton = document.getElementById('logoutButton');
+        logoutButton.addEventListener('click', () => {
+        window.location.href = '/logout'; // Changed from '/login' to '/logout'
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            // Theme Toggle
+            const themeToggle = document.getElementById('themeToggle');
+            const body = document.body;
+
+            // Set light mode as default
+            let isLightMode = true; // Default to true
+            body.classList.add('light-mode'); // Ensure class is added
+            body.style.backgroundColor = '#d8d8d2'; // Light mode background
+            body.style.color = '#1e293b'; // Light mode text
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i> Dark Mode'; // Reflect light mode
+
+            themeToggle.addEventListener('click', () => {
+                isLightMode = !isLightMode;
+                if (isLightMode) {
+                    body.classList.add('light-mode');
+                    body.style.backgroundColor = '#d8d8d2';
+                    body.style.color = '#1e293b';
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+                } else {
+                    body.classList.remove('light-mode');
+                    body.style.backgroundColor = '#1e293b';
+                    body.style.color = '#f8fafc';
+                    themeToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+                }
+                requestAnimationFrame(() => {
+                    body.style.transition = 'none';
+                    body.offsetHeight;
+                    body.style.transition = 'background-color 0.6s ease-out, color 0.6s ease-out';
+                });
+            });
+
+            // Smooth Scrolling for Navigation Links
+            document.querySelectorAll('nav a').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href.startsWith('#')) {
+                        e.preventDefault();
+                        const target = document.querySelector(href);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                });
+            });
+
+            // Natural Falling Leaves Animation
+            const leaves = document.querySelectorAll('.falling-leaf');
+            leaves.forEach(leaf => {
+                const leftPos = Math.random() * 100;
+                leaf.style.left = `${leftPos}%`;
+                const duration = 10 + Math.random() * 10; // 10-20s
+                const delay = Math.random() * 5; // 0-5s
+                const size = 15 + Math.random() * 10; // 15-25px
+                leaf.style.width = `${size}px`;
+                leaf.style.height = `${size}px`;
+                const animationName = leaf.classList.contains('green-leaf') ? 'fallingGreen' : 'fallingDry';
+                leaf.style.animation = `${animationName} ${duration}s linear ${delay}s infinite`;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WasteMonitor | About Us</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="static/style.css">
+  <style>
+    :root {
+      --bg-dark: #1e293b;
+      --card-bg: #334155;
+      --text-light: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-green: #4d7c0f;
+      --accent-teal: #2c7a7b;
+      --eco-green: #4a7f45;
+      --transition-duration: 0.6s;
+    }
+
+    .light-mode {
+      --bg-dark: #d8d8d2;
+      --card-bg: #ffffff;
+      --text-light: #1e293b;
+      --text-muted: #475569;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      transition: background-color var(--transition-duration) ease-out;
+      overflow-x: hidden;
+    }
+
+    /* Navbar Styles */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2rem;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 1000;
+      background-color: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      transition: background-color var(--transition-duration) ease-out;
+    }
+
+    .light-mode nav { background-color: #d8d8d2; }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      background: linear-gradient(to right, var(--accent-green), var(--accent-teal));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+    }
+
+    .logo i { margin-right: 0.5rem; font-size: 1.5rem; }
+
+    .nav-links { display: flex; gap: 2rem; }
+
+    .nav-links a {
+      color: var(--text-light);
+      text-decoration: none;
+      position: relative;
+      padding: 0.5rem 0;
+      transition: color 0.3s ease;
+    }
+
+    .nav-links a:hover { color: var(--accent-teal); }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background: linear-gradient(to right, var(--accent-green), var(--accent-teal));
+      transition: width 0.3s ease;
+    }
+
+    .nav-links a:hover::after { width: 100%; }
+
+    .theme-toggle {
+      background-color: #333;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .light-mode .theme-toggle { background-color: #ddd; color: #333; }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: url('static/asserts/img1.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(30, 41, 59, 0.8), rgba(30, 41, 59, 0.5));
+      z-index: 0;
+    }
+
+    .light-mode .hero-overlay {
+      background: linear-gradient(to bottom, rgba(216, 216, 210, 0.8), rgba(245, 245, 220, 0.5));
+    }
+
+    .hero-content {
+      text-align: center;
+      max-width: 800px;
+      padding: 2rem;
+      background: rgba(30, 41, 59, 0.75);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      outline: 2px solid #d8d8d2;
+      transition: outline-color var(--transition-duration) ease-out;
+      z-index: 1;
+      position: relative;
+    }
+
+    .light-mode .hero-content {
+      background: rgba(216, 216, 210, 0.75);
+      outline: 2px solid rgba(30, 41, 59, 0.75);
+    }
+
+    .hero-content h1.section-title { font-size: 3.5rem; margin-bottom: 1.5rem; }
+    .hero-content p { font-size: 1.2rem; margin-bottom: 2rem; line-height: 1.6; }
+    .cta-button { padding: 1rem 2rem; background: linear-gradient(to right, var(--accent-green), var(--accent-teal)); color: white; text-decoration: none; border-radius: 2rem; font-weight: bold; transition: transform 0.3s ease; }
+    .cta-button:hover { transform: translateY(-3px); }
+
+    /* Cards Section Base Styles */
+    .cards-section { padding: 6rem 2rem; background: var(--bg-dark); }
+    .cards-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+    .card {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      opacity: 0;
+      transform: translateY(50px);
+      transition: all 0.6s ease-out;
+      min-height: 200px;
+    }
+
+    .card.active { opacity: 1; transform: translateY(0); }
+
+    .card-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 15px;
+      font-size: 1.5rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--accent-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin: 20px 40px 0 0; /* Increased right margin to 40px */
+    }
+
+    .card-content {
+      background-color: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      padding: 2rem;
+      flex: 1;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card-title { font-size: 1.8rem; margin-bottom: 1rem; font-weight: bold; }
+    .card-description { font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); }
+
+    /* Section-Specific Styles */
+    .story-section .cards-container { display: flex; flex-direction: column; gap: 60px; }
+    .story-section .card { align-items: flex-start; }
+    .story-section .card-content { border-top: 4px solid var(--accent-green); }
+    .story-section .card:nth-child(2) .card-icon { margin-top: 30px; } /* Eye icon down */
+
+    .history-section .cards-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+    .history-section .card { height: 250px; }
+    .history-section .card-content { border-top: 4px solid var(--accent-teal); height: 100%; }
+
+    .tech-section .cards-container { 
+      display: flex; 
+      flex-wrap: nowrap;
+      gap: 30px; 
+      justify-content: space-around; 
+    }
+    .tech-section .card { align-items: flex-start; text-align: left; flex: 1; }
+    .tech-section .card-content { border-top: 4px solid var(--eco-green); }
+    .tech-section .card:nth-child(2) .card-icon { margin: 30px 50px 0 0; } /* Globe down and further right */
+
+    .community-section .cards-container { display: flex; flex-direction: column; gap: 50px; }
+    .community-section .card-content { border-top: 4px solid var(--accent-green); }
+    .community-section .card-description { font-style: italic; }
+
+    .join-section .cards-container { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 60px; 
+      align-items: stretch; 
+    }
+    .join-section .card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .join-section .card-content { 
+      border-top: 4px solid var(--accent-teal); 
+      text-align: center; 
+      flex-grow: 1;
+    }
+    .join-section .cta-button { margin-top: 1rem; display: inline-block; }
+
+    /* Centered Headings with Effects */
+    .section-title {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 3rem;
+      background: linear-gradient(to right, var(--accent-green), var(--accent-teal));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Footer */
+    footer {
+      background-color: rgba(30, 41, 59, 0.9);
+      padding: 3rem 2rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .light-mode footer { background-color: #d8d8d2; }
+
+    .footer-links { display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; }
+    .footer-links a:hover { color: var(--accent-teal); }
+    .copyright { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hero-content { margin: 0 1rem; padding: 1.5rem; }
+      .hero-content h1.section-title { font-size: 2.5rem; }
+      .hero-content p { font-size: 1rem; }
+      .history-section .cards-container, .join-section .cards-container { grid-template-columns: 1fr; }
+      .history-section .card { height: auto; }
+      .tech-section .cards-container { flex-direction: column; gap: 20px; }
+      .tech-section .card { min-width: 100%; }
+      .section-title { font-size: 2rem; }
+      .story-section .card { flex-direction: column; align-items: center; }
+      .story-section .card-icon { margin: 0 0 20px 0; }
+      .tech-section .card:nth-child(2) .card-icon { margin: 0 0 20px 0; }
+    }
+    .button-group {
+      display: flex;
+      gap: 10px; /* Adjust this value to control spacing (e.g., 5px for even closer) */
+  }
+  .theme-toggle, .logout-button {
+      padding: 10px 15px; /* Ensure consistent padding */
+      margin: 0; /* Remove any default margins */
+  }
+  .logout-button {
+    margin-left: 10px;
+    padding: 10px 15px;
+    background-color: #2c7a7b;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.logout-button:hover {
+    background-color: #1e5b5d;
+}
+  </style>
+</head>
+<body class="light-mode">
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">
+        <i class="fas fa-leaf"></i>
+        WARP
+    </div>
+    <div class="nav-links">
+        <a href="{{ url_for('index_private') }}">Home</a>
+        <a href="{{ url_for('about_private') }}">About</a>
+        <a href="{{ url_for('services_private') }}">Services</a>
+        <a href="{{ url_for('contact_private') }}">Contact</a>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button class="theme-toggle" id="themeToggle">
+            <i class="fas fa-moon"></i>
+            Dark Mode
+        </button>
+        <button class="logout-button" id="logoutButton">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+        </button>
+    </div>
+</nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1 class="section-title">WARP (Waste Analysis Report Project)</h1>
+      <p>Discover the story, mission, and impact of WasteMonitor, your partner in combating illegal waste dumping and promoting environmental sustainability since 2025.</p>
+      <a href="{{ url_for('contact') }}" class="cta-button">Get Involved</a>
+    </div>
+  </section>
+
+  <!-- Our Story Section -->
+  <section class="cards-section story-section">
+    <h2 class="section-title">Our Story</h2>
+    <div class="cards-container">
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-seedling"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">Our Mission</h3>
+          <p class="card-description">At WasteMonitor, we’re driven by a passion to use cutting-edge technology and community power to tackle waste disposal challenges, creating a cleaner planet for all.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-eye"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">Our Vision</h3>
+          <p class="card-description">Imagine a world free of illegal waste dumping—sustainable, green, and thriving. That’s the future WasteMonitor is building, one community at a time.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-users"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">Our Team</h3>
+          <p class="card-description">From environmental scientists to tech wizards, our diverse team unites expertise and heart to solve global waste management problems.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Our History Section -->
+  <section class="cards-section history-section">
+    <h2 class="section-title">Our History</h2>
+    <div class="cards-container">
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-history"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">Founded in 2025</h3>
+          <p class="card-description">Born in 2025, WasteMonitor started with a small team tackling urban dump sites, sparking a movement against illegal waste dumping.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-rocket"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">Growth & Impact</h3>
+          <p class="card-description">In just one year, we’ve monitored 500+ sites across 200 cities, cutting environmental harm by 85% in our areas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Our Technology Section -->
+  <section class="cards-section tech-section">
+    <h2 class="section-title">Our Technology</h2>
+    <div class="cards-container">
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-microchip"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">AI-Powered Analysis</h3>
+          <p class="card-description"><strong>Real-time insights:</strong> Our AI analyzes soil, water, and air data, predicting risks with precision.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-globe"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">GIS Mapping</h3>
+          <p class="card-description"><strong>Location precision:</strong> GIS tech maps dump sites for targeted monitoring and action.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-camera"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">Real-Time Monitoring</h3>
+          <p class="card-description"><strong>Instant data:</strong> IoT sensors and drones keep us ahead of waste site threats.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Our Community Impact Section -->
+  <section class="cards-section community-section">
+    <h2 class="section-title">Our Community Impact</h2>
+    <div class="cards-container">
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-hands-helping"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">Local Engagement</h3>
+          <p class="card-description"><em>Over 10,000 people empowered to fight illegal dumping through education and action.</em></p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">Policy Advocacy</h3>
+          <p class="card-description"><em>Shaped 15 new regulations in 2025 with governments and NGOs for a greener world.</em></p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-seedling"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">Sustainability Projects</h3>
+          <p class="card-description"><em>Restored 50 hectares, planted 100,000+ trees—sustainability starts with us.</em></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Join Us Section -->
+  <section class="cards-section join-section">
+    <h2 class="section-title">Join Us</h2>
+    <div class="cards-container">
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-handshake"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">Become a Partner</h3>
+          <p class="card-description">Team up with us to boost waste management in your area—let’s build a sustainable tomorrow.</p>
+          <a href="{{ url_for('contact') }}" class="cta-button">Contact Us Today</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon"><i class="fas fa-user-plus"></i></div>
+        <div class="card-content">
+          <h3 class="card-title">Join Our Team</h3>
+          <p class="card-description">Passionate about the planet? Join our crew and help shape a cleaner future.</p>
+          <a href="#" class="cta-button">View Careers</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact Us</a>
+      <a href="#">Careers</a>
+    </div>
+    <p class="copyright">© 2025 WasteMonitor. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const logoutButton = document.getElementById('logoutButton');
+      logoutButton.addEventListener('click', () => {
+        window.location.href = '/logout'; // Changed from '/login' to '/logout'
+      });
+    // Theme Toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+    let isLightMode = true;
+    themeToggle.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+
+    themeToggle.addEventListener('click', () => {
+      isLightMode = !isLightMode;
+      body.classList.toggle('light-mode');
+      themeToggle.innerHTML = isLightMode
+        ? '<i class="fas fa-moon"></i> Dark Mode'
+        : '<i class="fas fa-sun"></i> Light Mode';
+    });
+
+    // Card Animation on Scroll
+    const cards = document.querySelectorAll('.card');
+    function checkCards() {
+      const triggerBottom = window.innerHeight * 0.8;
+      cards.forEach(card => {
+        const cardTop = card.getBoundingClientRect().top;
+        if (cardTop < triggerBottom) card.classList.add('active');
+        else card.classList.remove('active');
+      });
+    }
+    window.addEventListener('scroll', checkCards);
+    window.addEventListener('load', checkCards);
+  </script>
+</body>
+</html>
